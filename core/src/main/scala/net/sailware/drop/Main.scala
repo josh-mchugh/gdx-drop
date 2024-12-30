@@ -6,6 +6,7 @@ import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.audio.Music
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.FitViewport
@@ -13,7 +14,7 @@ import com.badlogic.gdx.utils.viewport.FitViewport
 class Main extends ApplicationListener:
 
   var backgroundTexture: Texture = null
-  var bucketTexture: Texture = null
+  var bucketSprite: Sprite = null
   var dropTexture: Texture = null
   var dropSound: Sound = null
   var music: Music = null
@@ -23,7 +24,6 @@ class Main extends ApplicationListener:
 
   override def create(): Unit =
     backgroundTexture = Texture("background.png")
-    bucketTexture = Texture("bucket.png")
     dropTexture = Texture("drop.png")
 
     dropSound = Gdx.audio.newSound(Gdx.files.internal("drop.mp3"))
@@ -31,6 +31,9 @@ class Main extends ApplicationListener:
 
     spriteBatch = SpriteBatch()
     viewport = FitViewport(8, 5)
+
+    bucketSprite = Sprite(Texture("bucket.png"))
+    bucketSprite.setSize(1, 1)
 
   override def resize(width: Int, height: Int): Unit =
     viewport.update(width, height, true)
@@ -54,7 +57,7 @@ class Main extends ApplicationListener:
     val worldWidth = viewport.getWorldWidth()
 
     spriteBatch.draw(backgroundTexture, 0, 0, worldWidth, worldHeight)
-    spriteBatch.draw(bucketTexture, 0, 0, 1, 1)
+    bucketSprite.draw(spriteBatch)
 
     spriteBatch.end()
 
