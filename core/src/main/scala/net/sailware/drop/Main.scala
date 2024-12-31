@@ -58,6 +58,10 @@ class Main extends ApplicationListener:
     bucketRectangle = Rectangle()
     dropRectangle = Rectangle()
 
+    music.setLooping(true)
+    music.setVolume(0.5F)
+    music.play()
+
   override def resize(width: Int, height: Int): Unit =
     viewport.update(width, height, true)
 
@@ -96,8 +100,11 @@ class Main extends ApplicationListener:
       sprite.translateY(-2F * delta)
       dropRectangle.set(sprite.getX(), sprite.getY(), dropWidth, dropHeight)
 
-      if sprite.getY() < -dropHeight || bucketRectangle.overlaps(dropRectangle) then
+      if sprite.getY() < -dropHeight then
         dropSprites.removeIndex(i)
+      else if bucketRectangle.overlaps(dropRectangle) then
+        dropSprites.removeIndex(i)
+        dropSound.play()
 
     dropTimer += delta
     if dropTimer > 1F then
