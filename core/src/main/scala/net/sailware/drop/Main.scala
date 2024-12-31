@@ -9,9 +9,14 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.math.MathUtils
+import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
+import com.badlogic.gdx.utils.Array
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.FitViewport
+
+import scala.jdk.CollectionConverters._
 
 class Main extends ApplicationListener:
 
@@ -24,7 +29,14 @@ class Main extends ApplicationListener:
   var spriteBatch: SpriteBatch = null
   var viewport: FitViewport = null
 
-  val touchPos = Vector2()
+  var touchPos: Vector2 = null
+
+  var dropSprites: Array[Sprite] = null
+
+  var dropTimer: Float = 0F
+
+  var bucketRectangle: Rectangle = null
+  var dropRectangle: Rectangle = null
 
   override def create(): Unit =
     backgroundTexture = Texture("background.png")
@@ -38,6 +50,13 @@ class Main extends ApplicationListener:
 
     bucketSprite = Sprite(Texture("bucket.png"))
     bucketSprite.setSize(1, 1)
+
+    touchPos = new Vector2()
+
+    dropSprites = Array()
+
+    bucketRectangle = Rectangle()
+    dropRectangle = Rectangle()
 
   override def resize(width: Int, height: Int): Unit =
     viewport.update(width, height, true)
@@ -61,7 +80,29 @@ class Main extends ApplicationListener:
       viewport.unproject(touchPos)
       bucketSprite.setCenterX(touchPos.x)
 
-  private def logic(): Unit = {}
+  private def logic(): Unit =
+    val worldWidth = viewport.getWorldWidth()
+    val bucketWidth = bucketSprite.getWidth()
+    val bucketHeight = bucketSprite.getHeight()
+
+    bucketSprite.setX(MathUtils.clamp(bucketSprite.getX().toFloat, 0, worldWidth - bucketWidth))
+    bucketRectangle.set(bucketSprite.getX(), bucketSprite.getY(), bucketWidth, bucketHeight)
+
+    val delta = Gdx.graphics.getDeltaTime()
+    for i <- dropSprites.size -1 to 0 by -1 do
+      val sprite = dropSprites.get(i)
+      val dropWidth = sprite.getWidth()
+      val dropHeight = sprite.getHeight()
+      sprite.translateY(-2F * delta)
+      dropRectangle.set(sprite.getX(), sprite.getY(), dropWidth, dropHeight)
+
+      if sprite.getY() < -dropHeight || bucketRectangle.overlaps(dropRectangle) then
+        dropSprites.removeIndex(i)
+
+    dropTimer += delta
+    if dropTimer > 1F then
+      dropTimer = 0F
+      createDroplet()
 
   private def draw(): Unit =
     ScreenUtils.clear(Color.BLACK)
@@ -75,7 +116,22 @@ class Main extends ApplicationListener:
     spriteBatch.draw(backgroundTexture, 0, 0, worldWidth, worldHeight)
     bucketSprite.draw(spriteBatch)
 
+    for drop <- dropSprites.asScala do
+      drop.draw(spriteBatch)
+
     spriteBatch.end()
+
+  private def createDroplet(): Unit =
+    val width = 1F
+    val height = 1F
+    val worldWidth = viewport.getWorldWidth()
+    val worldHeight = viewport.getWorldHeight()
+
+    val sprite = Sprite(dropTexture)
+    sprite.setSize(width, height)
+    sprite.setX(MathUtils.random(0F, worldWidth - width))
+    sprite.setY(worldHeight)
+    dropSprites.add(sprite)
 
   override def pause(): Unit = {}
   override def resume(): Unit = {}
