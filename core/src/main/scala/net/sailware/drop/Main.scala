@@ -82,7 +82,6 @@ class GameScreen(
   val bucketSprite = Sprite(bucketTexture)
   bucketSprite.setSize(1, 1)
 
-  val spriteBatch = SpriteBatch()
   val viewport = FitViewport(8, 5)
 
   val touchPos = new Vector2()
@@ -98,6 +97,7 @@ class GameScreen(
   music.setVolume(0.5F)
 
   var dropTimer: Float = 0F
+  var dropsGathered: Int = 0
 
   override def show(): Unit =
     music.play()
@@ -139,6 +139,7 @@ class GameScreen(
       if sprite.getY() < -dropHeight then
         dropSprites.removeIndex(i)
       else if bucketRectangle.overlaps(dropRectangle) then
+        dropsGathered += 1
         dropSprites.removeIndex(i)
         dropSound.play()
 
@@ -150,19 +151,21 @@ class GameScreen(
   private def draw(): Unit =
     ScreenUtils.clear(Color.BLACK)
     viewport.apply()
-    spriteBatch.setProjectionMatrix(viewport.getCamera().combined)
-    spriteBatch.begin()
+    game.batch.setProjectionMatrix(viewport.getCamera().combined)
+    game.batch.begin()
 
     val worldHeight = viewport.getWorldHeight()
     val worldWidth = viewport.getWorldWidth()
 
-    spriteBatch.draw(backgroundTexture, 0, 0, worldWidth, worldHeight)
-    bucketSprite.draw(spriteBatch)
+    game.batch.draw(backgroundTexture, 0, 0, worldWidth, worldHeight)
+    bucketSprite.draw(game.batch)
+
+    game.font.draw(game.batch, s"Drops collected: $dropsGathered", 0F, worldHeight )
 
     for drop <- dropSprites.asScala do
-      drop.draw(spriteBatch)
+      drop.draw(game.batch)
 
-    spriteBatch.end()
+    game.batch.end()
 
   private def createDroplet(): Unit =
     val width = 1F
